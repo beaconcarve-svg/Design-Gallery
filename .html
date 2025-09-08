@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Design Gallery</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    body.light {
+      background-color: white;
+      color: black;
+    }
+
+    body.dark {
+      background-color: #1e1e1e;
+      color: white;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    .filters, .search-actions {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .category {
+      display: inline-block;
+      margin: 5px;
+      padding: 10px 15px;
+      border-radius: 20px;
+      background-color: #314946;
+      color: white;
+      border: 2px solid #314946;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .category.active {
+      background-color: white;
+      color: #314946;
+    }
+
+    .search-box input {
+      padding: 8px;
+      width: 60%;
+      max-width: 400px;
+      border: 2px solid #314946;
+      border-radius: 10px;
+    }
+
+    .search-actions button {
+      margin-left: 10px;
+      padding: 8px 15px;
+      border: none;
+      border-radius: 10px;
+      background-color: #314946;
+      color: white;
+      cursor: pointer;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 20px;
+      padding: 10px;
+    }
+
+    .item {
+      border: 2px solid #314946;
+      border-radius: 15px;
+      padding: 10px;
+      text-align: center;
+      background-color: inherit;
+      color: inherit;
+    }
+
+    .item img {
+      width: 100%;
+      border-radius: 10px;
+    }
+
+    .copy-btn {
+      margin-top: 10px;
+      background-color: #314946;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+
+    .form-link {
+      display: block;
+      text-align: center;
+      margin: 20px auto;
+    }
+
+    .form-link button {
+      background-color: #314946;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="light">
+
+  <h1>Design Preview Gallery</h1>
+
+  <!-- FORM LINK -->
+  <div class="form-link">
+    <a href="https://your-form-link.com" target="_blank">
+      <button>Go to Request Form</button>
+    </a>
+  </div>
+
+  <!-- PRODUCT + COMPLEXITY FILTERS -->
+  <div class="filters" id="productFilters"></div>
+  <div class="filters" id="complexityFilters"></div>
+
+  <!-- SEARCH + ACTIONS -->
+  <div class="search-actions">
+    <input type="text" id="searchInput" placeholder="Search by name...">
+    <button onclick="clearFilters()">Clear Filters</button>
+    <button onclick="toggleTheme()">Toggle Light/Dark</button>
+  </div>
+
+  <!-- GALLERY -->
+  <div class="gallery" id="gallery"></div>
+
+  <script>
+    // ------------------
+    // PUT YOUR DESIGNS HERE
+    // ------------------
+    const galleryData = {
+      "Mugs": {
+        "Simple": [
+          { name: "Mug - Floral", image: "https://via.placeholder.com/150?text=Floral+Mug" },
+          { name: "Mug - Text Only", image: "https://via.placeholder.com/150?text=Text+Mug" }
+        ],
+        "Complex": [
+          { name: "Mug - Pattern", image: "https://via.placeholder.com/150?text=Pattern+Mug" }
+        ]
+      },
+      "T-Shirts": {
+        "Medium Complex": [
+          { name: "Shirt - Graffiti", image: "https://via.placeholder.com/150?text=Graffiti+Shirt" },
+          { name: "Shirt - Splash", image: "https://via.placeholder.com/150?text=Splash+Shirt" }
+        ]
+      }
+    };
+
+    let selectedProduct = null;
+    let selectedComplexity = null;
+
+    const productFilters = document.getElementById("productFilters");
+    const complexityFilters = document.getElementById("complexityFilters");
+    const gallery = document.getElementById("gallery");
+    const searchInput = document.getElementById("searchInput");
+
+    function renderProductFilters() {
+      productFilters.innerHTML = "";
+      for (let product in galleryData) {
+        const btn = document.createElement("div");
+        btn.className = "category";
+        btn.textContent = product;
+        btn.onclick = () => {
+          selectedProduct = product;
+          selectedComplexity = null;
+          updateActiveButtons(productFilters, btn);
+          renderComplexityFilters();
+          renderGallery(); // Show all complexities by default
+        };
+        productFilters.appendChild(btn);
+      }
+    }
+
+    function renderComplexityFilters() {
+      complexityFilters.innerHTML = "";
+      if (!selectedProduct) return;
+      const complexities = Object.keys(galleryData[selectedProduct]);
+      complexities.forEach(complexity => {
+        const btn = document.createElement("div");
+        btn.className = "category";
+        btn.textContent = complexity;
+        btn.onclick = () => {
+          selectedComplexity = complexity;
+          updateActiveButtons(complexityFilters, btn);
+          renderGallery(); // Show filtered complexity
+        };
+        complexityFilters.appendChild(btn);
+      });
+    }
+
+    function updateActiveButtons(container, activeBtn) {
+      [...container.children].forEach(btn => btn.classList.remove("active"));
+      activeBtn.classList.add("active");
+    }
+
+    function renderGallery() {
+      gallery.innerHTML = "";
+      if (!selectedProduct) return;
+
+      const searchTerm = searchInput.value.toLowerCase();
+
+      // Show all complexities if none selected
+      const complexities = selectedComplexity
+        ? [selectedComplexity]
+        : Object.keys(galleryData[selectedProduct]);
+
+      complexities.forEach(level => {
+        const items = galleryData[selectedProduct][level] || [];
+        items.forEach(item => {
+          if (item.name.toLowerCase().includes(searchTerm)) {
+            const div = document.createElement("div");
+            div.className = "item";
+            div.innerHTML = `
+              <img src="${item.image}" alt="${item.name}">
+              <p>${item.name}</p>
+              <button class="copy-btn" onclick="navigator.clipboard.writeText('${item.name}')">Copy Name</button>
+            `;
+            gallery.appendChild(div);
+          }
+        });
+      });
+    }
+
+    function clearFilters() {
+      selectedProduct = null;
+      selectedComplexity = null;
+      searchInput.value = "";
+      renderProductFilters();
+      complexityFilters.innerHTML = "";
+      gallery.innerHTML = "";
+    }
+
+    function toggleTheme() {
+      const body = document.body;
+      body.classList.toggle("light");
+      body.classList.toggle("dark");
+    }
+
+    searchInput.addEventListener("input", renderGallery);
+
+    renderProductFilters();
+  </script>
+</body>
+</html>
